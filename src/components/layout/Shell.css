@@ -1,0 +1,301 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Shell.css — App Shell Layout Styles
+   Uses CSS Grid for header + sidebar + main content
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Root Shell Grid ───────────────────────────────────────────────────────── */
+.shell-root {
+  display: grid;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 60px 1fr;
+  min-height: 100vh;
+  background: #f3f6fa;
+  font-family: var(--font-family-base);
+  direction: rtl;
+}
+
+/* ── Header Bar ────────────────────────────────────────────────────────────── */
+.shell-header {
+  grid-area: header;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  z-index: 10;
+  position: sticky;
+  top: 0;
+}
+
+.shell-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.shell-header-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin: 0;
+}
+
+.shell-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.shell-user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.shell-logout-btn {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  font-family: var(--font-family-base);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.shell-logout-btn:hover {
+  background: #f5f5f5;
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────────── */
+.shell-sidebar {
+  grid-area: sidebar;
+  background: var(--color-primary-dark);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+  z-index: 20;
+}
+
+.shell-sidebar-brand {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shell-brand-text {
+  color: var(--color-text-title);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.shell-brand-sub {
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.shell-brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent-gold);
+  flex-shrink: 0;
+}
+
+.shell-nav {
+  flex: 1;
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.shell-nav-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-decorative-blue);
+  padding: 0.75rem 0.6rem 0.3rem;
+}
+
+.shell-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.shell-nav-link:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--color-text-title);
+}
+
+.shell-nav-link.active {
+  background: rgba(34, 137, 234, 0.2);
+  color: var(--color-text-title);
+  border-right: 3px solid var(--color-cta);
+}
+
+.shell-nav-icon {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.shell-sidebar-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.shell-user-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shell-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-cta), var(--color-primary-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.shell-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shell-user-fullname {
+  color: var(--color-text-title);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shell-user-role {
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+}
+
+/* ── Main Content Area ─────────────────────────────────────────────────────── */
+.shell-main {
+  grid-area: main;
+  overflow-y: auto;
+  min-height: 0;
+  background: #f3f6fa;
+}
+
+.shell-main-inner {
+  padding: 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.shell-readonly-banner {
+  margin-bottom: 1rem;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ── Bootstrap/Loading Screen ─────────────────────────────────────────────── */
+.shell-bootstrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--color-primary-dark);
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.shell-bootstrap-text {
+  color: var(--color-text-muted);
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+}
+
+.shell-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255,255,255,0.15);
+  border-top-color: var(--color-cta);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Utility Pages (403, 404) ─────────────────────────────────────────────── */
+.shell-error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  text-align: center;
+  direction: rtl;
+  font-family: var(--font-family-base);
+  padding: 2rem;
+}
+
+.shell-error-code {
+  font-size: 5rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  opacity: 0.15;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.shell-error-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 0.75rem;
+}
+
+.shell-error-sub {
+  color: #888;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}

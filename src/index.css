@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+:root {
+  /* Brand Colors */
+  --color-primary: #1B4C74;
+  --color-primary-dark: #1D4269;
+  --color-primary-light: #22597F;
+  
+  /* Interactive */
+  --color-cta: #2289EA;
+  --color-cta-hover: #1C78D0;
+  
+  /* Accent */
+  --color-accent-gold: #D6A93A;
+  
+  /* Neutrals on dark theme */
+  --color-text-title: #F3F7FB;
+  --color-text-body: #DCE8F2;
+  --color-text-muted: #B7CCDD;
+  
+  /* Decorative */
+  --color-decorative-blue: #63909E;
+
+  /* Status */
+  --color-success: #2e7e40; /* Adjusted for better contrast on dark */
+  --color-error: #d94242;
+  --color-warning: #e09f2d;
+  
+  --font-family-base: 'Tajawal', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family-base);
+  background-color: var(--color-primary-dark);
+  color: var(--color-text-body);
+  direction: rtl; /* Assuming Arabic based on specifications */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-title);
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--color-cta);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-cta-hover);
+}
+
+button {
+  font-family: var(--font-family-base);
+  cursor: pointer;
+}
