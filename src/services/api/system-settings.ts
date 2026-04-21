@@ -1,7 +1,7 @@
 import { authFetch } from '../http/authFetch';
 import type { SystemSettingsDto, UpdateSystemSettingsDto } from '../../types/system-settings';
 
-const BASE_URL = 'http://localhost:3000/api/v1/system-settings';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/system-settings`;
 
 export const systemSettingsApi = {
   getSettings: async (): Promise<SystemSettingsDto> => {

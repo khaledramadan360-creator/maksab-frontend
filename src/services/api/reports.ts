@@ -12,8 +12,8 @@ import type {
   ReportsListItem,
 } from '../../types/reports';
 
-const CLIENTS_BASE_URL = 'http://localhost:3000/api/v1/clients';
-const REPORTS_BASE_URL = 'http://localhost:3000/api/v1/reports';
+const CLIENTS_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/clients`;
+const REPORTS_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/reports`;
 
 const REPORT_STATUSES: ReportStatus[] = ['generating', 'ready', 'failed'];
 const REPORT_FORMATS: ReportFormat[] = ['pdf', 'html'];

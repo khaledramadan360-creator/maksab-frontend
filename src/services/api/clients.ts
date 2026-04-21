@@ -20,7 +20,7 @@ import type {
   UpdateClientRequest,
 } from '../../types/clients';
 
-const BASE_URL = 'http://localhost:3000/api/v1/clients';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/clients`;
 
 const PLATFORM_IDS: ClientPlatform[] = ['website', 'facebook', 'instagram', 'snapchat', 'linkedin', 'x', 'tiktok'];
 const CLIENT_STATUSES: ClientStatus[] = ['new', 'contacted', 'interested', 'not_interested', 'converted', 'archived'];

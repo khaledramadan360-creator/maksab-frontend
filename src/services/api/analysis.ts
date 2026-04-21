@@ -10,7 +10,7 @@ import type {
   TeamAnalysisOverviewItem,
 } from '../../types/analysis';
 
-const BASE_URL = 'http://localhost:3000/api/v1/clients';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/clients`;
 
 const SUPPORTED_PLATFORMS: AnalysisSourcePlatform[] = [
   'website',

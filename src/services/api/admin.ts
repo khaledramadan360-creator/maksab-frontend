@@ -11,7 +11,7 @@ import type {
 } from '../../types/admin';
 import type { UserRole } from '../../types/auth';
 
-const BASE_URL = 'http://localhost:3000/api/v1/auth';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/auth`;
 
 const toQuery = (params: Record<string, any>): string => {
   const q = new URLSearchParams();

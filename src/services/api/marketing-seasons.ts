@@ -8,7 +8,7 @@ import type {
   UpdateMarketingSeasonRequestDto,
 } from '../../types/marketing-seasons';
 
-const BASE_URL = 'http://localhost:3000/api/v1/marketing-seasons';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/marketing-seasons`;
 
 export const marketingSeasonsApi = {
   createMarketingSeason: async (body: CreateMarketingSeasonRequestDto): Promise<MarketingSeasonDto> => {

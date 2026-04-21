@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { User, AuthSession, AuthStatus } from '../types/auth';
 
-const BASE_URL = 'http://localhost:3000/api/v1/auth';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/auth`;
 
 // ─── Persistence Keys ──────────────────────────────────────────────────────────
 const KEYS = {
