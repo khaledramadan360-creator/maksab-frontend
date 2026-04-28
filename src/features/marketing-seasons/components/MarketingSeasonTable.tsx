@@ -50,7 +50,7 @@ export const MarketingSeasonTable: React.FC<MarketingSeasonTableProps> = ({
 
             return (
               <tr key={season.id}>
-                <td style={{ fontWeight: 500, color: 'var(--color-text-title)' }}>
+                <td style={{ fontWeight: 500 }}>
                   {season.title}
                 </td>
                 <td>
@@ -60,7 +60,7 @@ export const MarketingSeasonTable: React.FC<MarketingSeasonTableProps> = ({
                     <span className="ms-status-badge ms-status-inactive">غير نشط</span>
                   )}
                 </td>
-                <td style={{ color: 'var(--color-text-muted)' }}>
+                <td>
                   {formatDate(season.createdAt)}
                 </td>
                 <td>
@@ -92,7 +92,7 @@ export const MarketingSeasonTable: React.FC<MarketingSeasonTableProps> = ({
                         </button>
                       </>
                     ) : (
-                      <span style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+                      <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
                         {isViewer ? 'وضع القراءة' : 'غير مصرح'}
                       </span>
                     )}

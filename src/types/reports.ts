@@ -3,6 +3,7 @@ export type LegacyReportStatus = 'pending' | 'completed';
 export type AnyReportStatus = ReportStatus | LegacyReportStatus;
 
 export type ReportFormat = 'pdf' | 'html';
+export type ReportRecipientSource = 'whatsapp' | 'mobile' | 'custom';
 
 export interface ReportClientSnapshot {
   id: string;
@@ -66,4 +67,32 @@ export interface ReportsListItem {
 
 export interface GenerateClientReportResponse {
   data: ClientReport;
+}
+
+export interface SendReportToWhatChimpRequest {
+  recipientPhone: string;
+  recipientSource?: ReportRecipientSource;
+  recipientName?: string;
+  messageText?: string;
+}
+
+export interface SendReportToWhatChimpAttempt {
+  success: boolean;
+  status: string;
+  attemptId: string | null;
+  reportId: string | null;
+  clientId: string | null;
+  recipientPhone: string;
+  recipientSource: ReportRecipientSource;
+  provider: string;
+  providerMessageId: string | null;
+  providerStatusCode: string | null;
+  failureReason: string | null;
+  createdAt: string | null;
+}
+
+export interface SendReportToWhatChimpResponse {
+  success: boolean;
+  message: string;
+  data: SendReportToWhatChimpAttempt;
 }

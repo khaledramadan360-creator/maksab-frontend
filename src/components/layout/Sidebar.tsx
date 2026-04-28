@@ -21,6 +21,7 @@ export const Sidebar = () => {
   const isTeamOverviewRoute = pathname.startsWith('/clients/team-overview');
   const isClientsRoute = pathname === '/clients' || pathname.startsWith('/clients/');
   const isClientsLinkActive = isClientsRoute && !isTeamOverviewRoute;
+  const isClientEmailCampaignsRoute = pathname.startsWith('/client-email-campaigns');
 
   const initials =
     user?.fullName
@@ -75,6 +76,16 @@ export const Sidebar = () => {
           التقارير
         </NavLink>
 
+        <NavLink
+          to="/client-email-campaigns"
+          className={() =>
+            `shell-nav-link${isClientEmailCampaignsRoute ? ' active' : ''}`
+          }
+        >
+          <span className="shell-nav-icon">✉️</span>
+          حملات البريد الإلكتروني
+        </NavLink>
+
         {canViewTeamOverview && (
           <NavLink
             to="/clients/team-overview"
@@ -88,20 +99,20 @@ export const Sidebar = () => {
 
         <span className="shell-nav-section-label">الإعدادات</span>
         <NavLink
-            to="/marketing-seasons"
-            className={({ isActive }) => `shell-nav-link${isActive ? ' active' : ''}`}
+          to="/marketing-seasons"
+          className={({ isActive }) => `shell-nav-link${isActive ? ' active' : ''}`}
         >
-            <span className="shell-nav-icon">📅</span>
-            المواسم التسويقية
+          <span className="shell-nav-icon">📅</span>
+          المواسم التسويقية
         </NavLink>
 
         {isAdminOrManager && (
           <NavLink
-              to="/admin/system-settings"
-              className={({ isActive }) => `shell-nav-link${isActive ? ' active' : ''}`}
+            to="/admin/system-settings"
+            className={({ isActive }) => `shell-nav-link${isActive ? ' active' : ''}`}
           >
-              <span className="shell-nav-icon">⚙️</span>
-              إعدادات النظام
+            <span className="shell-nav-icon">⚙️</span>
+            إعدادات النظام
           </NavLink>
         )}
 

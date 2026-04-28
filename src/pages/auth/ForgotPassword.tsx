@@ -1,30 +1,49 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchApi } from '../../services/api/auth';
+import { AuthApiError, fetchApi } from '../../services/api/auth';
 import './Auth.css';
+
+interface ForgotPasswordResponse {
+  data?: {
+    message?: string;
+  };
+}
+
+const GENERIC_SUCCESS_MESSAGE =
+  'إذا كان البريد الإلكتروني مرتبطًا بحساب، ستصلك رسالة لإعادة تعيين كلمة المرور قريبًا. يرجى مراجعة صندوق الوارد.';
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'submitted'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState(GENERIC_SUCCESS_MESSAGE);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || status === 'submitting') return;
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail || status === 'submitting') return;
 
     setStatus('submitting');
-    
+    setErrorMessage('');
+
     try {
-      await fetchApi('/forgot-password', {
+      const response = await fetchApi<ForgotPasswordResponse>('/forgot-password', {
         method: 'POST',
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: normalizedEmail }),
       });
-      // Important UX Rule: regardless of specific success message format, treat as success.
+
+      setSuccessMessage(response?.data?.message?.trim() || GENERIC_SUCCESS_MESSAGE);
       setStatus('submitted');
-    } catch (err: any) {
-      // Security Rule: Even if it fails (e.g., user not found), we transition to submitted 
-      // without exposing business logic errors showing "email not found".
-      // We only catch real local validation or network errors if we wanted to show specific fallback.
-      setStatus('submitted');
+    } catch (error) {
+      if (error instanceof AuthApiError && error.httpStatus === 422) {
+        setErrorMessage('صيغة البريد الإلكتروني غير صحيحة.');
+      } else if (error instanceof AuthApiError && error.httpStatus) {
+        setErrorMessage(error.message || 'تعذر إرسال طلب إعادة التعيين. حاول مرة أخرى.');
+      } else {
+        setErrorMessage('تعذر الاتصال بالخادم. تأكد من إعدادات API_BASE_URL ثم حاول مرة أخرى.');
+      }
+      setStatus('idle');
     }
   };
 
@@ -32,26 +51,30 @@ export const ForgotPassword = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h1 className="auth-title">نسيت كلمة المرور</h1>
-        <p className="auth-subtitle">أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة التعيين</p>
-        
+        <p className="auth-subtitle">أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة التعيين.</p>
+
         {status === 'submitted' ? (
           <>
-            <div className="auth-success-alert">
-              إذا كان البريد الإلكتروني مرتبطاً بحساب، ستصلك رسالة لإعادة تعيين كلمة المرور قريباً. يرجى مراجعة صندوق الوارد.
-            </div>
-            <Link to="/login" className="auth-link">العودة لتسجيل الدخول</Link>
+            <div className="auth-success-alert">{successMessage}</div>
+            <Link to="/login" className="auth-link">
+              العودة لتسجيل الدخول
+            </Link>
           </>
         ) : (
           <>
+            {errorMessage && <div className="auth-error-alert">{errorMessage}</div>}
+
             <form className="auth-form" onSubmit={handleSubmit}>
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="email">البريد الإلكتروني</label>
-                <input 
+                <label className="auth-label" htmlFor="email">
+                  البريد الإلكتروني
+                </label>
+                <input
                   id="email"
-                  type="email" 
+                  type="email"
                   className="auth-input"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="name@example.com"
                   required
                   disabled={status === 'submitting'}
@@ -59,15 +82,18 @@ export const ForgotPassword = () => {
                 />
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="auth-button"
-                disabled={status === 'submitting' || !email}
+                disabled={status === 'submitting' || email.trim().length === 0}
               >
                 {status === 'submitting' ? 'جاري الإرسال...' : 'إرسال الرابط'}
               </button>
             </form>
-            <Link to="/login" className="auth-link">العودة لتسجيل الدخول</Link>
+
+            <Link to="/login" className="auth-link">
+              العودة لتسجيل الدخول
+            </Link>
           </>
         )}
       </div>

@@ -1,0 +1,146 @@
+.client-email-campaigns-page {
+  gap: 0.9rem;
+}
+
+.client-email-campaigns-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.client-email-campaigns-table {
+  min-width: 1080px;
+}
+
+.client-email-campaign-status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.18rem 0.56rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.client-email-campaign-status.status-draft {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.client-email-campaign-status.status-previewed {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.client-email-campaign-status.status-sending {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.client-email-campaign-status.status-sent {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.client-email-campaign-status.status-partially_failed {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fdba74;
+}
+
+.client-email-campaign-status.status-failed {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.client-email-campaign-preview-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.client-email-campaign-preview-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.55rem;
+}
+
+.client-email-campaign-preview-stats.compact {
+  margin-top: 0.9rem;
+}
+
+.client-email-campaign-preview-stat {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: #fff;
+}
+
+.client-email-campaign-preview-stat span {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.client-email-campaign-preview-stat strong {
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.client-email-campaign-preview-stat.sendable {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.client-email-campaign-preview-stat.warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.client-email-campaign-preview-stat.blocked {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.client-email-campaign-preview-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.client-email-campaign-tab-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.client-email-campaign-confirm-list {
+  margin: 0.45rem 0 0.65rem 0;
+  padding-right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.client-email-campaign-selector-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.client-email-campaigns-preview-shape {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.client-email-campaigns-preview-shape.large {
+  padding: 0.4rem 0;
+}

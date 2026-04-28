@@ -71,7 +71,7 @@ export const DashboardPage = () => {
           color: 'var(--color-primary-dark)',
         }}
       >
-        مرحباً، {user?.fullName}
+        مرحبًا، {user?.fullName}
       </h2>
       <p style={{ color: '#888', marginBottom: '2rem' }}>
         يمكنك الوصول إلى الأقسام التالية من القائمة الجانبية:
@@ -120,6 +120,20 @@ export const DashboardPage = () => {
           </div>
         </Link>
 
+        <Link to="/client-email-campaigns" style={cardLinkStyle}>
+          <div
+            style={{ ...cardBaseStyle, borderTop: '3px solid #0891b2' }}
+            onMouseOver={hoverUp}
+            onMouseOut={hoverDown}
+          >
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>✉️</div>
+            <div style={cardTitleStyle}>حملات البريد الإلكتروني</div>
+            <div style={cardDescriptionStyle}>
+              إنشاء الحملات، معاينة العملاء، ثم إرسال الحملة مع تتبع النتائج.
+            </div>
+          </div>
+        </Link>
+
         {canViewTeamOverview && (
           <Link to="/clients/team-overview" style={cardLinkStyle}>
             <div
@@ -130,7 +144,7 @@ export const DashboardPage = () => {
               <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📊</div>
               <div style={cardTitleStyle}>نظرة الفريق</div>
               <div style={cardDescriptionStyle}>
-                متابعة عدد العملاء لكل موظف داخل الفريق.
+                متابعة عدد العملاء والتحليل على مستوى الفريق.
               </div>
             </div>
           </Link>
@@ -152,7 +166,10 @@ export const DashboardPage = () => {
 
             <Link to="/admin/users" style={cardLinkStyle}>
               <div
-                style={{ ...cardBaseStyle, borderTop: '3px solid var(--color-accent-gold)' }}
+                style={{
+                  ...cardBaseStyle,
+                  borderTop: '3px solid var(--color-accent-gold)',
+                }}
                 onMouseOver={hoverUp}
                 onMouseOut={hoverDown}
               >
@@ -167,13 +184,16 @@ export const DashboardPage = () => {
         {canViewAuditModule && (
           <Link to="/admin/audit" style={cardLinkStyle}>
             <div
-              style={{ ...cardBaseStyle, borderTop: '3px solid var(--color-decorative-blue)' }}
+              style={{
+                ...cardBaseStyle,
+                borderTop: '3px solid var(--color-decorative-blue)',
+              }}
               onMouseOver={hoverUp}
               onMouseOut={hoverDown}
             >
               <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>📋</div>
               <div style={cardTitleStyle}>سجلات التدقيق</div>
-              <div style={cardDescriptionStyle}>مراجعة سجل الأحداث الكاملة.</div>
+              <div style={cardDescriptionStyle}>مراجعة سجل الأحداث الكامل.</div>
             </div>
           </Link>
         )}

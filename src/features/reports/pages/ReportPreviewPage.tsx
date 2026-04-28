@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { AuthApiError } from '../../../services/api/auth';
+import { getClientById } from '../../../services/api/clients';
 import { usePermissions } from '../../../store/authStore';
-import { useClientReport } from '../hooks/useClientReport';
-import { useGenerateClientReport } from '../hooks/useGenerateClientReport';
 import { GenerateReportModal } from '../components/GenerateReportModal';
 import { ReportEmptyState } from '../components/ReportEmptyState';
 import { ReportErrorState } from '../components/ReportErrorState';
-import { ReportLoadingState } from '../components/ReportLoadingState';
 import { ReportFixedCoverPage } from '../components/ReportFixedCoverPage';
+import { ReportLoadingState } from '../components/ReportLoadingState';
+import { SendReportToWhatChimpModal } from '../components/SendReportToWhatChimpModal';
+import { useClientReport } from '../hooks/useClientReport';
+import { useGenerateClientReport } from '../hooks/useGenerateClientReport';
+import { useSendReportToWhatChimp } from '../hooks/useSendReportToWhatChimp';
+import type { SendReportToWhatChimpRequest } from '../../../types/reports';
 import '../styles/reports.css';
 
 const REPORT_STATUS_LABELS: Record<string, string> = {
@@ -18,11 +23,23 @@ const REPORT_STATUS_LABELS: Record<string, string> = {
   completed: 'جاهز',
 };
 
+interface ClientContactData {
+  whatsappPhone: string;
+  mobilePhone: string;
+  recipientName: string;
+}
+
+const EMPTY_CONTACTS: ClientContactData = {
+  whatsappPhone: '',
+  mobilePhone: '',
+  recipientName: '',
+};
+
 export const ReportPreviewPage = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const { isReadOnlyUser, hasRole } = usePermissions();
-
   const canGenerate = !isReadOnlyUser && hasRole(['admin', 'manager', 'employee']);
+  const canSendToWhatChimp = !isReadOnlyUser && hasRole(['admin', 'manager', 'employee']);
 
   const { report, loadState, errorMessage, hasReport, refetch } = useClientReport({
     clientId,
@@ -31,17 +48,108 @@ export const ReportPreviewPage = () => {
 
   const { generate, isGenerating, errorMessage: generateError, clearError } =
     useGenerateClientReport();
+  const {
+    send,
+    isSending,
+    errorMessage: sendErrorMessage,
+    clearError: clearSendError,
+  } = useSendReportToWhatChimp();
 
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [contactsState, setContactsState] = useState<'idle' | 'loading' | 'ready' | 'error'>(
+    'idle',
+  );
+  const [contactsErrorMessage, setContactsErrorMessage] = useState('');
+  const [contacts, setContacts] = useState<ClientContactData>(EMPTY_CONTACTS);
+  const [toast, setToast] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    window.setTimeout(() => setToast(null), 3500);
+  };
+
+  useEffect(() => {
+    if (!isSendModalOpen || !clientId || isReadOnlyUser) {
+      return;
+    }
+
+    let isActive = true;
+    setContactsState('loading');
+    setContactsErrorMessage('');
+
+    getClientById(clientId)
+      .then((response) => {
+        if (!isActive) return;
+
+        setContacts({
+          whatsappPhone: response.data.whatsappNumber ?? '',
+          mobilePhone: response.data.mobilePhone ?? '',
+          recipientName: response.data.name ?? report?.client?.name ?? '',
+        });
+        setContactsState('ready');
+      })
+      .catch((error) => {
+        if (!isActive) return;
+
+        setContacts((previous) => ({
+          ...previous,
+          recipientName: report?.client?.name ?? previous.recipientName,
+        }));
+        setContactsState('error');
+        setContactsErrorMessage(
+          error instanceof AuthApiError
+            ? error.message
+            : 'تعذر تحميل أرقام العميل، يمكنك الإرسال برقم مخصص.',
+        );
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [isSendModalOpen, clientId, isReadOnlyUser, report?.client?.name]);
 
   const handleGenerate = async () => {
     if (!clientId || !canGenerate) return;
 
     const result = await generate(clientId);
-    if (!result.ok) return;
+    if (!result.ok) {
+      showToast(result.message, 'error');
+      return;
+    }
 
     setIsGenerateModalOpen(false);
     await refetch();
+    showToast('تم توليد التقرير بنجاح.', 'success');
+  };
+
+  const handleOpenSendModal = () => {
+    if (!canSendToWhatChimp) return;
+    clearSendError();
+    setContacts({
+      whatsappPhone: '',
+      mobilePhone: '',
+      recipientName: report?.client?.name ?? '',
+    });
+    setContactsState('idle');
+    setContactsErrorMessage('');
+    setIsSendModalOpen(true);
+  };
+
+  const handleSendReport = async (payload: SendReportToWhatChimpRequest) => {
+    if (!clientId || !canSendToWhatChimp) return;
+
+    const result = await send(clientId, payload);
+    if (!result.ok) {
+      showToast(result.message, 'error');
+      return;
+    }
+
+    setIsSendModalOpen(false);
+    showToast(result.message, 'success');
   };
 
   if (!clientId) {
@@ -60,7 +168,7 @@ export const ReportPreviewPage = () => {
           <p className="reports-page-subtitle">
             {isReadOnlyUser
               ? 'وضع مشاهدة فقط: هذه معاينة شكلية للتقرير.'
-              : 'عرض التقرير النهائي مع خيار تحميل PDF أو إعادة التوليد.'}
+              : 'عرض التقرير النهائي مع خيارات تحميل PDF وإرسال التقرير عبر WhatChimp.'}
           </p>
         </div>
 
@@ -77,13 +185,25 @@ export const ReportPreviewPage = () => {
               clearError();
               setIsGenerateModalOpen(true);
             }}
-            title={!canGenerate ? 'لا توجد صلاحية لإنشاء التقرير.' : ''}
+            title={!canGenerate ? 'لا توجد صلاحية لتوليد التقرير.' : ''}
           >
-            {isGenerating
-              ? 'جارٍ التنفيذ...'
-              : hasReport
-                ? 'إعادة توليد'
-                : 'إنشاء تقرير'}
+            {isGenerating ? 'جاري التنفيذ...' : hasReport ? 'إعادة توليد' : 'إنشاء تقرير'}
+          </button>
+
+          <button
+            type="button"
+            className="clients-btn clients-btn-ghost"
+            disabled={!canSendToWhatChimp || !hasReport || isSending || isGenerating}
+            onClick={handleOpenSendModal}
+            title={
+              !canSendToWhatChimp
+                ? 'لا توجد صلاحية لإرسال التقرير.'
+                : !hasReport
+                  ? 'يجب إنشاء التقرير أولًا.'
+                  : ''
+            }
+          >
+            {isSending ? 'جاري الإرسال...' : 'إرسال عبر WhatChimp'}
           </button>
 
           {report?.pdfUrl && !isReadOnlyUser ? (
@@ -104,7 +224,7 @@ export const ReportPreviewPage = () => {
       </div>
 
       {isGenerating && hasReport && (
-        <div className="reports-inline-notice">جارٍ إعادة توليد التقرير...</div>
+        <div className="reports-inline-notice">جاري إعادة توليد التقرير...</div>
       )}
 
       {loadState === 'loading' && <ReportLoadingState />}
@@ -123,7 +243,7 @@ export const ReportPreviewPage = () => {
           message={
             isReadOnlyUser
               ? 'وضع مشاهدة فقط: لا تتوفر بيانات تقرير حقيقية.'
-              : 'لا يوجد تقرير محفوظ لهذا العميل حالياً.'
+              : 'لا يوجد تقرير محفوظ لهذا العميل حاليًا.'
           }
           actionLabel="إنشاء تقرير"
           disabled={!canGenerate || isGenerating}
@@ -201,7 +321,7 @@ export const ReportPreviewPage = () => {
 
       {isGenerateModalOpen && (
         <GenerateReportModal
-          clientName={report?.title || 'العميل'}
+          clientName={report?.client?.name || report?.title || 'العميل'}
           isRegenerate={hasReport}
           isReadOnly={!canGenerate}
           isLoading={isGenerating}
@@ -209,6 +329,27 @@ export const ReportPreviewPage = () => {
           onConfirm={handleGenerate}
         />
       )}
+
+      {isSendModalOpen && (
+        <SendReportToWhatChimpModal
+          clientName={report?.client?.name || report?.title || 'العميل'}
+          whatsappPhone={contacts.whatsappPhone}
+          mobilePhone={contacts.mobilePhone}
+          defaultRecipientName={contacts.recipientName || report?.client?.name || ''}
+          isLoadingContacts={contactsState === 'loading'}
+          contactsErrorMessage={contactsErrorMessage}
+          isLoading={isSending}
+          isReadOnly={!canSendToWhatChimp}
+          errorMessage={sendErrorMessage}
+          onCancel={() => {
+            if (isSending) return;
+            setIsSendModalOpen(false);
+          }}
+          onSubmit={handleSendReport}
+        />
+      )}
+
+      {toast && <div className={`reports-toast ${toast.type}`}>{toast.message}</div>}
     </div>
   );
 };

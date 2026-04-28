@@ -7,9 +7,13 @@ import type {
   ReportFormat,
   ReportPlatformScore,
   ReportPreviewPayload,
+  ReportRecipientSource,
   ReportScreenshot,
   ReportStatus,
   ReportsListItem,
+  SendReportToWhatChimpAttempt,
+  SendReportToWhatChimpRequest,
+  SendReportToWhatChimpResponse,
 } from '../../types/reports';
 
 const CLIENTS_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/clients`;
@@ -17,6 +21,7 @@ const REPORTS_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab
 
 const REPORT_STATUSES: ReportStatus[] = ['generating', 'ready', 'failed'];
 const REPORT_FORMATS: ReportFormat[] = ['pdf', 'html'];
+const RECIPIENT_SOURCES: ReportRecipientSource[] = ['whatsapp', 'mobile', 'custom'];
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -42,6 +47,28 @@ const toNumberOrNull = (value: unknown): number | null => {
   }
 
   return null;
+};
+
+const toBoolean = (value: unknown, fallback = false): boolean => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    return value === 1;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'accepted', 'success', 'ok'].includes(normalized)) {
+      return true;
+    }
+    if (['false', '0', 'no', 'failed', 'error', 'rejected'].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return fallback;
 };
 
 const toStatus = (value: unknown): ReportStatus => {
@@ -81,6 +108,13 @@ const toFormat = (value: unknown): ReportFormat => {
     return value as ReportFormat;
   }
   return 'pdf';
+};
+
+const toRecipientSource = (value: unknown): ReportRecipientSource => {
+  if (typeof value === 'string' && (RECIPIENT_SOURCES as string[]).includes(value)) {
+    return value as ReportRecipientSource;
+  }
+  return 'custom';
 };
 
 const stripCssPrefixIfAny = (value: string): string => {
@@ -161,6 +195,99 @@ const pickDataArray = (value: unknown): Array<Record<string, unknown>> => {
   }
 
   return [];
+};
+
+const WHAT_CHIMP_ATTEMPT_KEYS = [
+  'attemptId',
+  'reportId',
+  'clientId',
+  'recipientPhone',
+  'recipientSource',
+  'provider',
+  'providerMessageId',
+  'providerStatusCode',
+  'failureReason',
+  'status',
+] as const;
+
+const isWhatChimpAttemptLike = (value: unknown): value is Record<string, unknown> => {
+  if (!isObject(value)) return false;
+  return WHAT_CHIMP_ATTEMPT_KEYS.some((key) => value[key] !== undefined && value[key] !== null);
+};
+
+const pickWhatChimpAttemptRaw = (value: unknown): Record<string, unknown> => {
+  if (!isObject(value)) return {};
+
+  const candidates: unknown[] = [
+    value.data,
+    isObject(value.data) ? value.data.data : null,
+    value.attempt,
+    isObject(value.data) ? value.data.attempt : null,
+    value,
+  ];
+
+  for (const candidate of candidates) {
+    if (isWhatChimpAttemptLike(candidate)) {
+      return candidate;
+    }
+  }
+
+  const dataObject = pickDataObject(value);
+  return isObject(dataObject) ? dataObject : {};
+};
+
+const toWhatChimpAttempt = (
+  value: unknown,
+  fallbackSource: ReportRecipientSource,
+): SendReportToWhatChimpAttempt => {
+  const raw = pickWhatChimpAttemptRaw(value);
+  const source = toRecipientSource(raw.recipientSource ?? raw.recipient_source ?? fallbackSource);
+  const success = toBoolean(raw.success, raw.failureReason === undefined || raw.failureReason === null);
+
+  return {
+    success,
+    status: toCleanString(raw.status) || (success ? 'accepted' : 'failed'),
+    attemptId: toNullableString(raw.attemptId ?? raw.attempt_id),
+    reportId: toNullableString(raw.reportId ?? raw.report_id),
+    clientId: toNullableString(raw.clientId ?? raw.client_id),
+    recipientPhone: toCleanString(raw.recipientPhone ?? raw.recipient_phone),
+    recipientSource: source,
+    provider: toCleanString(raw.provider) || 'whatchimp',
+    providerMessageId: toNullableString(raw.providerMessageId ?? raw.provider_message_id),
+    providerStatusCode: toNullableString(
+      raw.providerStatusCode ?? raw.provider_status_code,
+    ),
+    failureReason: toNullableString(raw.failureReason ?? raw.failure_reason),
+    createdAt: toNullableString(raw.createdAt ?? raw.created_at),
+  };
+};
+
+const toSendReportToWhatChimpResponse = (
+  value: unknown,
+  fallbackSource: ReportRecipientSource,
+): SendReportToWhatChimpResponse => {
+  const root = isObject(value) ? value : {};
+  const nested = isObject(root.data) ? root.data : {};
+  const attempt = toWhatChimpAttempt(value, fallbackSource);
+
+  const success = toBoolean(
+    root.success ?? nested.success,
+    attempt.success && attempt.status !== 'failed',
+  );
+  const message =
+    toCleanString(root.message ?? nested.message) ||
+    (success
+      ? 'تم إرسال التقرير عبر WhatChimp بنجاح.'
+      : 'تعذر إرسال التقرير عبر WhatChimp.');
+
+  return {
+    success,
+    message,
+    data: {
+      ...attempt,
+      success,
+    },
+  };
 };
 
 const pickReportContainer = (value: unknown): Record<string, unknown> => {
@@ -373,6 +500,30 @@ const buildReportsQueryString = (params?: ListReportsParams): string => {
   return queryString ? `?${queryString}` : '';
 };
 
+const compactWhatChimpPayload = (
+  payload: SendReportToWhatChimpRequest,
+): SendReportToWhatChimpRequest => {
+  const recipientPhone = toCleanString(payload.recipientPhone);
+  const recipientSource = toRecipientSource(payload.recipientSource ?? 'custom');
+  const recipientName = toNullableString(payload.recipientName);
+  const messageText = toNullableString(payload.messageText);
+
+  const compacted: SendReportToWhatChimpRequest = {
+    recipientPhone,
+    recipientSource,
+  };
+
+  if (recipientName) {
+    compacted.recipientName = recipientName;
+  }
+
+  if (messageText) {
+    compacted.messageText = messageText;
+  }
+
+  return compacted;
+};
+
 export const generateClientReport = async (
   clientId: string,
 ): Promise<GenerateClientReportResponse> => {
@@ -432,6 +583,22 @@ export const listReports = async (
     page,
     pageSize,
   };
+};
+
+export const sendClientReportToWhatChimp = async (
+  clientId: string,
+  payload: SendReportToWhatChimpRequest,
+): Promise<SendReportToWhatChimpResponse> => {
+  const requestBody = compactWhatChimpPayload(payload);
+  const response = await authFetch<unknown>(
+    `${CLIENTS_BASE_URL}/${clientId}/report/send-whatchimp`,
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    },
+  );
+
+  return toSendReportToWhatChimpResponse(response, requestBody.recipientSource ?? 'custom');
 };
 
 export const deleteReport = (reportId: string) =>
