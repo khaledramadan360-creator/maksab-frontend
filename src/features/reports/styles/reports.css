@@ -304,6 +304,17 @@
   gap: 0.3rem;
 }
 
+.reports-send-field-full {
+  grid-column: 1 / -1;
+}
+
+.reports-send-section-title {
+  margin: 0.1rem 0 0;
+  color: #1e3a5f;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .reports-send-field span {
   font-size: 0.82rem;
   color: #334155;
@@ -341,6 +352,16 @@
   padding: 0.5rem 0.6rem;
   font-size: 0.84rem;
   font-weight: 700;
+}
+
+.reports-modal-note {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.84rem;
+  line-height: 1.7;
 }
 
 .reports-modal-actions {

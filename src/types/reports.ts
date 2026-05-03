@@ -74,6 +74,7 @@ export interface SendReportToWhatChimpRequest {
   recipientSource?: ReportRecipientSource;
   recipientName?: string;
   messageText?: string;
+  whatchimpPhoneNumberId?: string;
 }
 
 export interface SendReportToWhatChimpAttempt {
@@ -88,6 +89,8 @@ export interface SendReportToWhatChimpAttempt {
   providerMessageId: string | null;
   providerStatusCode: string | null;
   failureReason: string | null;
+  whatchimpPhoneNumberId: string | null;
+  resolvedWhatChimpAccountId: string | null;
   createdAt: string | null;
 }
 
@@ -95,4 +98,18 @@ export interface SendReportToWhatChimpResponse {
   success: boolean;
   message: string;
   data: SendReportToWhatChimpAttempt;
+}
+
+export interface WhatChimpPhoneNumberOption {
+  id: string;
+  name: string;
+  phoneNumber: string | null;
+  label: string;
+  isDefault: boolean;
+}
+
+export interface WhatChimpPhoneNumberOptionsResponse {
+  options: WhatChimpPhoneNumberOption[];
+  defaultPhoneNumberId: string | null;
+  allowCustomPhoneNumberId: boolean;
 }

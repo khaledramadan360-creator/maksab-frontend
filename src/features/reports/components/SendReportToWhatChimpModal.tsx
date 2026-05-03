@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ReportRecipientSource, SendReportToWhatChimpRequest } from '../../../types/reports';
+import type {
+  ReportRecipientSource,
+  SendReportToWhatChimpRequest,
+  WhatChimpPhoneNumberOption,
+} from '../../../types/reports';
 
 interface SendReportToWhatChimpModalProps {
   clientName: string;
@@ -8,6 +12,8 @@ interface SendReportToWhatChimpModalProps {
   defaultRecipientName?: string;
   isLoadingContacts?: boolean;
   contactsErrorMessage?: string;
+  whatChimpPhoneNumberOptions?: WhatChimpPhoneNumberOption[];
+  defaultWhatChimpPhoneNumberId?: string | null;
   isLoading?: boolean;
   isReadOnly?: boolean;
   errorMessage?: string;
@@ -24,6 +30,31 @@ const pickDefaultSource = (
   return 'custom';
 };
 
+const pickInitialWhatChimpSelection = ({
+  options,
+  defaultPhoneNumberId,
+}: {
+  options: WhatChimpPhoneNumberOption[];
+  defaultPhoneNumberId?: string | null;
+}): string => {
+  const normalizedDefaultId = defaultPhoneNumberId?.trim();
+
+  if (normalizedDefaultId && options.some((option) => option.id === normalizedDefaultId)) {
+    return normalizedDefaultId;
+  }
+
+  const markedDefault = options.find((option) => option.isDefault);
+  if (markedDefault) {
+    return markedDefault.id;
+  }
+
+  if (options.length > 0) {
+    return options[0].id;
+  }
+
+  return '';
+};
+
 export const SendReportToWhatChimpModal = ({
   clientName,
   whatsappPhone = '',
@@ -31,6 +62,8 @@ export const SendReportToWhatChimpModal = ({
   defaultRecipientName = '',
   isLoadingContacts = false,
   contactsErrorMessage = '',
+  whatChimpPhoneNumberOptions = [],
+  defaultWhatChimpPhoneNumberId = null,
   isLoading = false,
   isReadOnly = false,
   errorMessage = '',
@@ -41,9 +74,20 @@ export const SendReportToWhatChimpModal = ({
     () => pickDefaultSource(whatsappPhone, mobilePhone),
     [whatsappPhone, mobilePhone],
   );
+  const initialWhatChimpSelection = useMemo(
+    () =>
+      pickInitialWhatChimpSelection({
+        options: whatChimpPhoneNumberOptions,
+        defaultPhoneNumberId: defaultWhatChimpPhoneNumberId,
+      }),
+    [whatChimpPhoneNumberOptions, defaultWhatChimpPhoneNumberId],
+  );
 
   const [recipientSource, setRecipientSource] = useState<ReportRecipientSource>(initialSource);
   const [customPhone, setCustomPhone] = useState('');
+  const [selectedWhatChimpPhoneNumberId, setSelectedWhatChimpPhoneNumberId] = useState(
+    initialWhatChimpSelection,
+  );
   const [recipientName, setRecipientName] = useState(defaultRecipientName);
   const [messageText, setMessageText] = useState('تقريرك جاهز');
   const [validationError, setValidationError] = useState('');
@@ -51,6 +95,10 @@ export const SendReportToWhatChimpModal = ({
   useEffect(() => {
     setRecipientSource(initialSource);
   }, [initialSource]);
+
+  useEffect(() => {
+    setSelectedWhatChimpPhoneNumberId(initialWhatChimpSelection);
+  }, [initialWhatChimpSelection]);
 
   useEffect(() => {
     setRecipientName(defaultRecipientName);
@@ -62,6 +110,15 @@ export const SendReportToWhatChimpModal = ({
     return customPhone.trim();
   }, [recipientSource, whatsappPhone, mobilePhone, customPhone]);
 
+  const resolvedWhatChimpPhoneNumberId = useMemo(
+    () => selectedWhatChimpPhoneNumberId.trim(),
+    [selectedWhatChimpPhoneNumberId],
+  );
+
+  const noAutoPhone =
+    (recipientSource === 'whatsapp' && !(whatsappPhone ?? '').trim()) ||
+    (recipientSource === 'mobile' && !(mobilePhone ?? '').trim());
+
   const handleSubmit = () => {
     if (isReadOnly || isLoading) {
       return;
@@ -69,6 +126,11 @@ export const SendReportToWhatChimpModal = ({
 
     if (!resolvedPhone) {
       setValidationError('رقم المستلم مطلوب للإرسال.');
+      return;
+    }
+
+    if (!resolvedWhatChimpPhoneNumberId) {
+      setValidationError('اختيار رقم المرسل مطلوب.');
       return;
     }
 
@@ -88,12 +150,9 @@ export const SendReportToWhatChimpModal = ({
       recipientSource,
       recipientName: recipientName.trim() || undefined,
       messageText: messageText.trim() || undefined,
+      whatchimpPhoneNumberId: resolvedWhatChimpPhoneNumberId || undefined,
     });
   };
-
-  const noAutoPhone =
-    (recipientSource === 'whatsapp' && !(whatsappPhone ?? '').trim()) ||
-    (recipientSource === 'mobile' && !(mobilePhone ?? '').trim());
 
   return (
     <div className="reports-modal-overlay" onClick={onCancel}>
@@ -103,23 +162,28 @@ export const SendReportToWhatChimpModal = ({
           سيتم إرسال التقرير الخاص بالعميل <strong>{clientName}</strong>.
         </p>
 
+        <div className="reports-modal-note">
+          <strong>مهم:</strong> `recipientPhone` هو رقم العميل المستلم، بينما
+          `whatchimpPhoneNumberId` هو رقم حساب WhatChimp الذي سيتم الإرسال منه.
+        </div>
+
         {isReadOnly && (
-          <p className="reports-modal-warning">
-            وضع مشاهدة فقط: لا يمكنك إرسال التقرير.
-          </p>
+          <p className="reports-modal-warning">وضع مشاهدة فقط: لا يمكنك إرسال التقرير.</p>
         )}
 
         {isLoadingContacts && (
-          <p className="reports-modal-warning">جاري تحميل أرقام العميل...</p>
+          <p className="reports-modal-warning">جارٍ تحميل أرقام العميل...</p>
         )}
 
-        {contactsErrorMessage && (
-          <p className="reports-modal-warning">{contactsErrorMessage}</p>
-        )}
+        {contactsErrorMessage && <p className="reports-modal-warning">{contactsErrorMessage}</p>}
 
         <div className="reports-send-form">
+          <div className="reports-send-section-title reports-send-field-full">
+            رقم العميل المستلم
+          </div>
+
           <label className="reports-send-field">
-            <span>مصدر الرقم</span>
+            <span>مصدر رقم المستلم</span>
             <select
               value={recipientSource}
               onChange={(event) => {
@@ -163,6 +227,32 @@ export const SendReportToWhatChimpModal = ({
             </label>
           )}
 
+          <div className="reports-send-section-title reports-send-field-full">
+            حساب WhatChimp المستخدم للإرسال
+          </div>
+
+          <label className="reports-send-field reports-send-field-full">
+            <span>اختر رقم/حساب WhatChimp</span>
+            <select
+              value={selectedWhatChimpPhoneNumberId}
+              onChange={(event) => {
+                setSelectedWhatChimpPhoneNumberId(event.target.value);
+                setValidationError('');
+              }}
+              disabled={isReadOnly || isLoading}
+            >
+              {whatChimpPhoneNumberOptions.length > 0 ? (
+                whatChimpPhoneNumberOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))
+              ) : (
+                <option value="">لا توجد خيارات مرسل متاحة</option>
+              )}
+            </select>
+          </label>
+
           <label className="reports-send-field">
             <span>اسم المستلم (اختياري)</span>
             <input
@@ -174,7 +264,7 @@ export const SendReportToWhatChimpModal = ({
             />
           </label>
 
-          <label className="reports-send-field">
+          <label className="reports-send-field reports-send-field-full">
             <span>نص الرسالة (اختياري)</span>
             <textarea
               value={messageText}
@@ -211,7 +301,7 @@ export const SendReportToWhatChimpModal = ({
             onClick={handleSubmit}
             disabled={isReadOnly || isLoading || isLoadingContacts || noAutoPhone}
           >
-            {isLoading ? 'جاري الإرسال...' : 'إرسال عبر WhatChimp'}
+            {isLoading ? 'جارٍ الإرسال...' : 'إرسال عبر WhatChimp'}
           </button>
         </div>
       </div>

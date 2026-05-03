@@ -14,6 +14,8 @@ import type {
   SendReportToWhatChimpAttempt,
   SendReportToWhatChimpRequest,
   SendReportToWhatChimpResponse,
+  WhatChimpPhoneNumberOption,
+  WhatChimpPhoneNumberOptionsResponse,
 } from '../../types/reports';
 
 const CLIENTS_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/clients`;
@@ -203,6 +205,8 @@ const WHAT_CHIMP_ATTEMPT_KEYS = [
   'clientId',
   'recipientPhone',
   'recipientSource',
+  'whatchimpPhoneNumberId',
+  'resolvedWhatChimpAccountId',
   'provider',
   'providerMessageId',
   'providerStatusCode',
@@ -258,6 +262,15 @@ const toWhatChimpAttempt = (
       raw.providerStatusCode ?? raw.provider_status_code,
     ),
     failureReason: toNullableString(raw.failureReason ?? raw.failure_reason),
+    whatchimpPhoneNumberId: toNullableString(
+      raw.whatchimpPhoneNumberId ?? raw.whatchimp_phone_number_id,
+    ),
+    resolvedWhatChimpAccountId: toNullableString(
+      raw.resolvedWhatChimpAccountId ??
+        raw.resolvedWhatchimpAccountId ??
+        raw.resolved_whatchimp_account_id ??
+        raw.resolved_what_chimp_account_id,
+    ),
     createdAt: toNullableString(raw.createdAt ?? raw.created_at),
   };
 };
@@ -287,6 +300,100 @@ const toSendReportToWhatChimpResponse = (
       ...attempt,
       success,
     },
+  };
+};
+
+const toWhatChimpPhoneNumberOption = (
+  value: unknown,
+): WhatChimpPhoneNumberOption | null => {
+  if (!isObject(value)) return null;
+
+  const id = toCleanString(value.id);
+  if (!id) return null;
+
+  const name = toCleanString(value.name);
+  const phoneNumber = toNullableString(value.phoneNumber ?? value.phone_number);
+  const fallbackLabel = [name, phoneNumber ? `(${phoneNumber})` : null]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  return {
+    id,
+    name,
+    phoneNumber,
+    label: toCleanString(value.label) || fallbackLabel || id,
+    isDefault: toBoolean(value.isDefault ?? value.is_default),
+  };
+};
+
+const isWhatChimpPhoneNumberOptionsLike = (
+  value: unknown,
+): value is Record<string, unknown> => {
+  if (!isObject(value)) return false;
+
+  return (
+    Array.isArray(value.options) ||
+    value.defaultPhoneNumberId !== undefined ||
+    value.default_phone_number_id !== undefined ||
+    value.allowCustomPhoneNumberId !== undefined ||
+    value.allow_custom_phone_number_id !== undefined
+  );
+};
+
+const pickWhatChimpPhoneNumberOptionsRaw = (value: unknown): Record<string, unknown> => {
+  if (!isObject(value)) return {};
+
+  const candidates: unknown[] = [
+    isObject(value.data) ? value.data.data : null,
+    value.data,
+    value,
+  ];
+
+  for (const candidate of candidates) {
+    if (isWhatChimpPhoneNumberOptionsLike(candidate)) {
+      return candidate;
+    }
+  }
+
+  return {};
+};
+
+const toWhatChimpPhoneNumberOptionsResponse = (
+  value: unknown,
+): WhatChimpPhoneNumberOptionsResponse => {
+  const data = pickWhatChimpPhoneNumberOptionsRaw(value);
+  const parsedOptions = Array.isArray(data.options)
+    ? data.options
+        .map((item) => toWhatChimpPhoneNumberOption(item))
+        .filter((item): item is WhatChimpPhoneNumberOption => item !== null)
+    : [];
+  const defaultPhoneNumberId =
+    toNullableString(data.defaultPhoneNumberId ?? data.default_phone_number_id) ??
+    parsedOptions.find((item) => item.isDefault)?.id ??
+    null;
+  const options =
+    parsedOptions.length > 0
+      ? parsedOptions
+      : defaultPhoneNumberId
+        ? [
+            {
+              id: defaultPhoneNumberId,
+              name: 'Default',
+              phoneNumber: null,
+              label: 'Default',
+              isDefault: true,
+            },
+          ]
+        : [];
+
+  return {
+    options,
+    defaultPhoneNumberId,
+    allowCustomPhoneNumberId: toBoolean(
+      data.allowCustomPhoneNumberId ?? data.allow_custom_phone_number_id,
+      true,
+    ),
   };
 };
 
@@ -507,6 +614,7 @@ const compactWhatChimpPayload = (
   const recipientSource = toRecipientSource(payload.recipientSource ?? 'custom');
   const recipientName = toNullableString(payload.recipientName);
   const messageText = toNullableString(payload.messageText);
+  const whatchimpPhoneNumberId = toNullableString(payload.whatchimpPhoneNumberId);
 
   const compacted: SendReportToWhatChimpRequest = {
     recipientPhone,
@@ -519,6 +627,10 @@ const compactWhatChimpPayload = (
 
   if (messageText) {
     compacted.messageText = messageText;
+  }
+
+  if (whatchimpPhoneNumberId) {
+    compacted.whatchimpPhoneNumberId = whatchimpPhoneNumberId;
   }
 
   return compacted;
@@ -599,6 +711,14 @@ export const sendClientReportToWhatChimp = async (
   );
 
   return toSendReportToWhatChimpResponse(response, requestBody.recipientSource ?? 'custom');
+};
+
+export const getWhatChimpPhoneNumberOptions = async (): Promise<WhatChimpPhoneNumberOptionsResponse> => {
+  const response = await authFetch<unknown>(
+    `${REPORTS_BASE_URL}/whatchimp-phone-number-options`,
+  );
+
+  return toWhatChimpPhoneNumberOptionsResponse(response);
 };
 
 export const deleteReport = (reportId: string) =>

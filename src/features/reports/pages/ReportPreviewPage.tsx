@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AuthApiError } from '../../../services/api/auth';
 import { getClientById } from '../../../services/api/clients';
+import type { SendReportToWhatChimpRequest } from '../../../types/reports';
 import { usePermissions } from '../../../store/authStore';
 import { GenerateReportModal } from '../components/GenerateReportModal';
 import { ReportEmptyState } from '../components/ReportEmptyState';
@@ -9,10 +10,13 @@ import { ReportErrorState } from '../components/ReportErrorState';
 import { ReportFixedCoverPage } from '../components/ReportFixedCoverPage';
 import { ReportLoadingState } from '../components/ReportLoadingState';
 import { SendReportToWhatChimpModal } from '../components/SendReportToWhatChimpModal';
+import {
+  FRONTEND_WHATCHIMP_DEFAULT_SENDER_ID,
+  FRONTEND_WHATCHIMP_SENDER_OPTIONS,
+} from '../constants/whatchimpSenderOptions';
 import { useClientReport } from '../hooks/useClientReport';
 import { useGenerateClientReport } from '../hooks/useGenerateClientReport';
 import { useSendReportToWhatChimp } from '../hooks/useSendReportToWhatChimp';
-import type { SendReportToWhatChimpRequest } from '../../../types/reports';
 import '../styles/reports.css';
 
 const REPORT_STATUS_LABELS: Record<string, string> = {
@@ -103,7 +107,7 @@ export const ReportPreviewPage = () => {
         setContactsErrorMessage(
           error instanceof AuthApiError
             ? error.message
-            : 'تعذر تحميل أرقام العميل، يمكنك الإرسال برقم مخصص.',
+            : 'تعذر تحميل أرقام العميل، ويمكنك المتابعة برقم مخصص.',
         );
       });
 
@@ -128,6 +132,7 @@ export const ReportPreviewPage = () => {
 
   const handleOpenSendModal = () => {
     if (!canSendToWhatChimp) return;
+
     clearSendError();
     setContacts({
       whatsappPhone: '',
@@ -338,6 +343,8 @@ export const ReportPreviewPage = () => {
           defaultRecipientName={contacts.recipientName || report?.client?.name || ''}
           isLoadingContacts={contactsState === 'loading'}
           contactsErrorMessage={contactsErrorMessage}
+          whatChimpPhoneNumberOptions={FRONTEND_WHATCHIMP_SENDER_OPTIONS}
+          defaultWhatChimpPhoneNumberId={FRONTEND_WHATCHIMP_DEFAULT_SENDER_ID}
           isLoading={isSending}
           isReadOnly={!canSendToWhatChimp}
           errorMessage={sendErrorMessage}
