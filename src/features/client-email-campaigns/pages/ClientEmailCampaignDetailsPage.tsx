@@ -30,6 +30,11 @@ export const ClientEmailCampaignDetailsPage = () => {
         </div>
         <div className="clients-header-actions">
           {isReadOnlyUser && <span className="clients-preview-pill-text">Preview Mode</span>}
+          {campaignId && (
+            <Link to={`/client-email-tracking/${campaignId}`} className="clients-btn clients-btn-ghost">
+              شاشة التتبع
+            </Link>
+          )}
           <Link to="/client-email-campaigns" className="clients-btn clients-btn-ghost">
             العودة للقائمة
           </Link>

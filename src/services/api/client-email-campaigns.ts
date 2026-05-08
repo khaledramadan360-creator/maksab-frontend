@@ -1,10 +1,16 @@
 import { authFetch } from '../http/authFetch';
 import type {
+  ClientEmailCampaignBounceType,
   ClientEmailCampaignDetails,
+  ClientEmailCampaignEventSource,
   ClientEmailCampaignListItem,
   ClientEmailCampaignRecipientDetails,
+  ClientEmailCampaignRecipientEvent,
+  ClientEmailCampaignRecipientEvents,
   ClientEmailCampaignRecipientPreview,
   ClientEmailCampaignStatus,
+  ClientEmailCampaignTrackingEventType,
+  ClientEmailCampaignTrackingSummary,
   EmailEligibilityLevel,
   EmailEligibilityReason,
   ListClientEmailCampaignsParams,
@@ -46,6 +52,33 @@ const ELIGIBILITY_REASONS: EmailEligibilityReason[] = [
   'access_denied',
   'provider_rejected',
 ];
+
+const TRACKING_EVENT_TYPES: ClientEmailCampaignTrackingEventType[] = [
+  'delivered',
+  'opened',
+  'proxy_opened',
+  'clicked',
+  'soft_bounced',
+  'hard_bounced',
+  'unsubscribed',
+  'complained',
+];
+
+const BOUNCE_TYPES: ClientEmailCampaignBounceType[] = ['hard_bounced', 'soft_bounced'];
+
+const EVENT_SOURCES: ClientEmailCampaignEventSource[] = ['marketing', 'inbound'];
+
+const EMPTY_TRACKING_SUMMARY: ClientEmailCampaignTrackingSummary = {
+  deliveredCount: 0,
+  openedCount: 0,
+  proxyOpenedCount: 0,
+  clickedCount: 0,
+  hardBouncedCount: 0,
+  softBouncedCount: 0,
+  unsubscribedCount: 0,
+  complainedCount: 0,
+  lastEventAt: null,
+};
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -140,6 +173,45 @@ const toEligibilityReason = (value: unknown): EmailEligibilityReason | null => {
   return null;
 };
 
+const toTrackingEventType = (
+  value: unknown,
+): ClientEmailCampaignTrackingEventType | null => {
+  if (typeof value === 'string' && (TRACKING_EVENT_TYPES as string[]).includes(value)) {
+    return value as ClientEmailCampaignTrackingEventType;
+  }
+  return null;
+};
+
+const toBounceType = (value: unknown): ClientEmailCampaignBounceType | null => {
+  if (typeof value === 'string' && (BOUNCE_TYPES as string[]).includes(value)) {
+    return value as ClientEmailCampaignBounceType;
+  }
+  return null;
+};
+
+const toEventSource = (value: unknown): ClientEmailCampaignEventSource => {
+  if (typeof value === 'string' && (EVENT_SOURCES as string[]).includes(value)) {
+    return value as ClientEmailCampaignEventSource;
+  }
+  return 'marketing';
+};
+
+const toTrackingSummary = (value: unknown): ClientEmailCampaignTrackingSummary => {
+  const raw = isObject(value) ? value : {};
+
+  return {
+    deliveredCount: toFiniteNumber(raw.deliveredCount ?? raw.delivered_count),
+    openedCount: toFiniteNumber(raw.openedCount ?? raw.opened_count),
+    proxyOpenedCount: toFiniteNumber(raw.proxyOpenedCount ?? raw.proxy_opened_count),
+    clickedCount: toFiniteNumber(raw.clickedCount ?? raw.clicked_count),
+    hardBouncedCount: toFiniteNumber(raw.hardBouncedCount ?? raw.hard_bounced_count),
+    softBouncedCount: toFiniteNumber(raw.softBouncedCount ?? raw.soft_bounced_count),
+    unsubscribedCount: toFiniteNumber(raw.unsubscribedCount ?? raw.unsubscribed_count),
+    complainedCount: toFiniteNumber(raw.complainedCount ?? raw.complained_count),
+    lastEventAt: toNullableString(raw.lastEventAt ?? raw.last_event_at),
+  };
+};
+
 const toPreviewRecipient = (
   raw: Record<string, unknown>,
   fallbackLevel?: EmailEligibilityLevel,
@@ -156,7 +228,14 @@ const toCampaignListItem = (raw: Record<string, unknown>): ClientEmailCampaignLi
   id: toCleanString(raw.id ?? raw.campaignId ?? raw.campaign_id),
   title: toCleanString(raw.title ?? raw.campaignTitle ?? raw.campaign_title),
   subject: toCleanString(raw.subject),
+  senderName: toNullableString(raw.senderName ?? raw.sender_name),
+  senderEmail: toNullableString(raw.senderEmail ?? raw.sender_email),
   status: toCampaignStatus(raw.status),
+  provider: 'brevo',
+  providerCampaignId: toNullableString(
+    raw.providerCampaignId ?? raw.provider_campaign_id,
+  ),
+  providerListId: toNullableString(raw.providerListId ?? raw.provider_list_id),
   totalSelected: toFiniteNumber(raw.totalSelected ?? raw.total_selected),
   sendableCount: toFiniteNumber(raw.sendableCount ?? raw.sendable_count),
   warningCount: toFiniteNumber(raw.warningCount ?? raw.warning_count),
@@ -165,10 +244,13 @@ const toCampaignListItem = (raw: Record<string, unknown>): ClientEmailCampaignLi
   sentCount: toFiniteNumber(raw.sentCount ?? raw.sent_count),
   failedCount: toFiniteNumber(raw.failedCount ?? raw.failed_count),
   skippedCount: toFiniteNumber(raw.skippedCount ?? raw.skipped_count),
+  requestedByUserId: toNullableString(
+    raw.requestedByUserId ?? raw.requested_by_user_id ?? raw.createdByUserId ?? raw.created_by_user_id,
+  ),
+  failureReason: toNullableString(raw.failureReason ?? raw.failure_reason),
   createdAt: toNullableString(raw.createdAt ?? raw.created_at),
   sentAt: toNullableString(raw.sentAt ?? raw.sent_at),
-  createdByUserId: toNullableString(raw.createdByUserId ?? raw.created_by_user_id),
-  createdByName: toNullableString(raw.createdByName ?? raw.created_by_name),
+  updatedAt: toNullableString(raw.updatedAt ?? raw.updated_at),
 });
 
 const toRecipientStatus = (value: unknown): ClientEmailCampaignRecipientDetails['sendStatus'] => {
@@ -188,20 +270,71 @@ const toRecipientStatus = (value: unknown): ClientEmailCampaignRecipientDetails[
 
 const toRecipientDetails = (
   raw: Record<string, unknown>,
-): ClientEmailCampaignRecipientDetails => ({
-  id: toCleanString(raw.id ?? raw.recipientId ?? raw.recipient_id),
+): ClientEmailCampaignRecipientDetails => {
+  const status = toRecipientStatus(raw.sendStatus ?? raw.send_status ?? raw.status);
+  const name = toNullableString(raw.name ?? raw.clientName ?? raw.client_name);
+
+  return {
+    id: toCleanString(raw.id ?? raw.recipientId ?? raw.recipient_id),
+    campaignId: toNullableString(raw.campaignId ?? raw.campaign_id),
+    clientId: toNullableString(raw.clientId ?? raw.client_id),
+    name,
+    clientName: name,
+    email: toNullableString(raw.email),
+    status,
+    sendStatus: status,
+    eligibilityLevel:
+      raw.eligibilityLevel || raw.eligibility_level
+        ? toEligibilityLevel(raw.eligibilityLevel ?? raw.eligibility_level)
+        : null,
+    eligibilityReason: toEligibilityReason(raw.eligibilityReason ?? raw.eligibility_reason),
+    skipReason: toNullableString(raw.skipReason ?? raw.skip_reason),
+    overrideUsed: toBoolean(raw.overrideUsed ?? raw.override_used),
+    overrideReason: toNullableString(raw.overrideReason ?? raw.override_reason),
+    overrideByUserId: toNullableString(raw.overrideByUserId ?? raw.override_by_user_id),
+    overrideAt: toNullableString(raw.overrideAt ?? raw.override_at),
+    failureReason: toNullableString(raw.failureReason ?? raw.failure_reason),
+    sentAt: toNullableString(raw.sentAt ?? raw.sent_at),
+    deliveredAt: toNullableString(raw.deliveredAt ?? raw.delivered_at),
+    firstOpenedAt: toNullableString(raw.firstOpenedAt ?? raw.first_opened_at),
+    lastOpenedAt: toNullableString(raw.lastOpenedAt ?? raw.last_opened_at),
+    openCount: toFiniteNumber(raw.openCount ?? raw.open_count),
+    proxyOpenedAt: toNullableString(raw.proxyOpenedAt ?? raw.proxy_opened_at),
+    proxyOpenCount: toFiniteNumber(raw.proxyOpenCount ?? raw.proxy_open_count),
+    firstClickedAt: toNullableString(raw.firstClickedAt ?? raw.first_clicked_at),
+    lastClickedAt: toNullableString(raw.lastClickedAt ?? raw.last_clicked_at),
+    clickCount: toFiniteNumber(raw.clickCount ?? raw.click_count),
+    lastClickedUrl: toNullableString(raw.lastClickedUrl ?? raw.last_clicked_url),
+    bouncedAt: toNullableString(raw.bouncedAt ?? raw.bounced_at),
+    lastBounceType: toBounceType(raw.lastBounceType ?? raw.last_bounce_type),
+    unsubscribedAt: toNullableString(raw.unsubscribedAt ?? raw.unsubscribed_at),
+    complainedAt: toNullableString(raw.complainedAt ?? raw.complained_at),
+    lastEventAt: toNullableString(raw.lastEventAt ?? raw.last_event_at),
+    lastEventType: toTrackingEventType(raw.lastEventType ?? raw.last_event_type),
+    createdAt: toNullableString(raw.createdAt ?? raw.created_at),
+    updatedAt: toNullableString(raw.updatedAt ?? raw.updated_at),
+  };
+};
+
+const toRecipientEvent = (
+  raw: Record<string, unknown>,
+): ClientEmailCampaignRecipientEvent => ({
+  id: toCleanString(raw.id),
+  campaignId: toNullableString(raw.campaignId ?? raw.campaign_id),
+  recipientId: toNullableString(raw.recipientId ?? raw.recipient_id),
   clientId: toNullableString(raw.clientId ?? raw.client_id),
-  clientName: toNullableString(raw.clientName ?? raw.client_name ?? raw.name),
-  email: toNullableString(raw.email),
-  sendStatus: toRecipientStatus(raw.sendStatus ?? raw.send_status ?? raw.status),
-  eligibilityLevel: raw.eligibilityLevel || raw.eligibility_level
-    ? toEligibilityLevel(raw.eligibilityLevel ?? raw.eligibility_level)
-    : null,
-  eligibilityReason: toEligibilityReason(raw.eligibilityReason ?? raw.eligibility_reason),
-  overrideUsed: toBoolean(raw.overrideUsed ?? raw.override_used),
-  overrideReason: toNullableString(raw.overrideReason ?? raw.override_reason),
-  failureReason: toNullableString(raw.failureReason ?? raw.failure_reason),
-  sentAt: toNullableString(raw.sentAt ?? raw.sent_at),
+  source: toEventSource(raw.source),
+  eventType: toTrackingEventType(raw.eventType ?? raw.event_type) ?? 'delivered',
+  eventAt:
+    toCleanString(raw.eventAt ?? raw.event_at) ||
+    toCleanString(raw.createdAt ?? raw.created_at),
+  linkUrl: toNullableString(raw.linkUrl ?? raw.link_url),
+  reason: toNullableString(raw.reason),
+  providerCampaignId: toNullableString(
+    raw.providerCampaignId ?? raw.provider_campaign_id,
+  ),
+  providerMessageId: toNullableString(raw.providerMessageId ?? raw.provider_message_id),
+  createdAt: toNullableString(raw.createdAt ?? raw.created_at),
 });
 
 const buildListQueryString = (params?: ListClientEmailCampaignsParams): string => {
@@ -370,29 +503,80 @@ export const getClientEmailCampaignDetails = async (
   const response = await authFetch<unknown>(`${BASE_URL}/${campaignId}${queryString}`);
   const data = pickDataObject(response);
   const campaignRaw = isObject(data.campaign) ? data.campaign : data;
+  const recipientsContainer = isObject(data.recipients) ? data.recipients : data;
   const recipientsRaw = pickDataArray(data.recipients ?? data.items);
+  const trackingSummaryRaw =
+    data.trackingSummary ??
+    data.tracking_summary ??
+    campaignRaw.trackingSummary ??
+    campaignRaw.tracking_summary;
+  const trackingSummary = trackingSummaryRaw
+    ? toTrackingSummary(trackingSummaryRaw)
+    : EMPTY_TRACKING_SUMMARY;
 
   return {
     campaign: {
       ...toCampaignListItem(campaignRaw),
-      senderName: toNullableString(campaignRaw.senderName ?? campaignRaw.sender_name),
-      senderEmail: toNullableString(campaignRaw.senderEmail ?? campaignRaw.sender_email),
       htmlContent: toNullableString(campaignRaw.htmlContent ?? campaignRaw.html_content),
       textContent: toNullableString(campaignRaw.textContent ?? campaignRaw.text_content),
-      providerCampaignId: toNullableString(
-        campaignRaw.providerCampaignId ?? campaignRaw.provider_campaign_id,
-      ),
-      providerListId: toNullableString(
-        campaignRaw.providerListId ?? campaignRaw.provider_list_id,
-      ),
-      updatedAt: toNullableString(campaignRaw.updatedAt ?? campaignRaw.updated_at),
+      lastEventAt: toNullableString(campaignRaw.lastEventAt ?? campaignRaw.last_event_at),
     },
+    trackingSummary,
     recipients: recipientsRaw.map(toRecipientDetails),
-    totalRecipients: toFiniteNumber(data.total ?? data.totalRecipients, recipientsRaw.length),
-    recipientsPage: toFiniteNumber(data.page, params?.page ?? 1),
+    totalRecipients: toFiniteNumber(
+      recipientsContainer.total ??
+        recipientsContainer.totalRecipients ??
+        recipientsContainer.total_recipients ??
+        data.total ??
+        data.totalRecipients,
+      recipientsRaw.length,
+    ),
+    recipientsPage: toFiniteNumber(
+      recipientsContainer.page ?? data.page,
+      params?.page ?? 1,
+    ),
     recipientsPageSize: toFiniteNumber(
-      data.pageSize ?? data.page_size,
+      recipientsContainer.pageSize ??
+        recipientsContainer.page_size ??
+        data.pageSize ??
+        data.page_size,
       params?.pageSize ?? 20,
     ),
+  };
+};
+
+export const getClientEmailCampaignRecipientEvents = async (
+  campaignId: string,
+  recipientId: string,
+  params?: { page?: number; pageSize?: number },
+): Promise<ClientEmailCampaignRecipientEvents> => {
+  const query = new URLSearchParams();
+  if (typeof params?.page === 'number' && params.page > 0) {
+    query.set('page', String(Math.floor(params.page)));
+  }
+  if (typeof params?.pageSize === 'number' && params.pageSize > 0) {
+    query.set('pageSize', String(Math.floor(params.pageSize)));
+  }
+  const queryString = query.toString() ? `?${query.toString()}` : '';
+
+  const response = await authFetch<unknown>(
+    `${BASE_URL}/${campaignId}/recipients/${recipientId}/events${queryString}`,
+  );
+  const data = pickDataObject(response);
+  const recipientRaw = isObject(data.recipient) ? data.recipient : {};
+  const eventsContainer = isObject(data.events) ? data.events : data;
+  const eventsRaw = pickDataArray(data.events ?? data.items);
+
+  return {
+    recipient: toRecipientDetails(recipientRaw),
+    events: {
+      items: eventsRaw.map(toRecipientEvent),
+      total: toFiniteNumber(eventsContainer.total ?? data.total, eventsRaw.length),
+      page: toFiniteNumber(eventsContainer.page ?? data.page, params?.page ?? 1),
+      pageSize: toFiniteNumber(
+        eventsContainer.pageSize ?? eventsContainer.page_size ?? data.pageSize ?? data.page_size,
+        params?.pageSize ?? 50,
+      ),
+    },
   };
 };

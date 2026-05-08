@@ -5,6 +5,8 @@ import { ClientEmailCampaignStatusBadge } from './ClientEmailCampaignStatusBadge
 interface ClientEmailCampaignsTableProps {
   items: ClientEmailCampaignListItem[];
   isPreviewMode?: boolean;
+  actionLabel?: string;
+  buildActionHref?: (item: ClientEmailCampaignListItem) => string;
 }
 
 const formatDate = (value: string | null) => {
@@ -15,6 +17,8 @@ const formatDate = (value: string | null) => {
 export const ClientEmailCampaignsTable = ({
   items,
   isPreviewMode = false,
+  actionLabel = 'فتح',
+  buildActionHref = (item) => `/client-email-campaigns/${item.id}`,
 }: ClientEmailCampaignsTableProps) => {
   return (
     <section className="clients-card clients-table-wrap">
@@ -67,10 +71,10 @@ export const ClientEmailCampaignsTable = ({
                 <td>{formatDate(item.createdAt)}</td>
                 <td>
                   <Link
-                    to={`/client-email-campaigns/${item.id}`}
+                    to={buildActionHref(item)}
                     className="clients-btn clients-btn-ghost"
                   >
-                    فتح
+                    {actionLabel}
                   </Link>
                 </td>
               </tr>

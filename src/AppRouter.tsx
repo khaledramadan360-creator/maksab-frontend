@@ -23,6 +23,8 @@ import { ReportsListPage } from './features/reports/pages/ReportsListPage';
 import { ClientEmailCampaignsListPage } from './features/client-email-campaigns/pages/ClientEmailCampaignsListPage';
 import { CreateClientEmailCampaignPage } from './features/client-email-campaigns/pages/CreateClientEmailCampaignPage';
 import { ClientEmailCampaignDetailsPage } from './features/client-email-campaigns/pages/ClientEmailCampaignDetailsPage';
+import { ClientEmailCampaignTrackingListPage } from './features/client-email-campaigns/pages/ClientEmailCampaignTrackingListPage';
+import { ClientEmailCampaignTrackingDetailsPage } from './features/client-email-campaigns/pages/ClientEmailCampaignTrackingDetailsPage';
 
 // Utility Pages
 import { ForbiddenPage } from './pages/ForbiddenPage';
@@ -72,6 +74,8 @@ export const AppRouter = () => {
         <Route path="/client-email-campaigns" element={<Shell><ClientEmailCampaignsListPage /></Shell>} />
         <Route path="/client-email-campaigns/create" element={<Shell><CreateClientEmailCampaignPage /></Shell>} />
         <Route path="/client-email-campaigns/:campaignId" element={<Shell><ClientEmailCampaignDetailsPage /></Shell>} />
+        <Route path="/client-email-tracking" element={<Shell><ClientEmailCampaignTrackingListPage /></Shell>} />
+        <Route path="/client-email-tracking/:campaignId" element={<Shell><ClientEmailCampaignTrackingDetailsPage /></Shell>} />
         <Route path="/marketing-seasons" element={<Shell><MarketingSeasonsPage /></Shell>} />
 
         {/* ── Admin + Manager Routes ──────────────────────────────────── */}

@@ -144,3 +144,302 @@
 .client-email-campaigns-preview-shape.large {
   padding: 0.4rem 0;
 }
+
+.client-email-tracking-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.client-email-tracking-summary-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.client-email-tracking-summary-meta {
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.client-email-tracking-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.65rem;
+}
+
+.client-email-tracking-summary-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: #fff;
+}
+
+.client-email-tracking-summary-card span {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.client-email-tracking-summary-card strong {
+  color: #0f172a;
+  font-size: 1.2rem;
+}
+
+.client-email-tracking-summary-card.tone-success {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.client-email-tracking-summary-card.tone-info {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.client-email-tracking-summary-card.tone-accent {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+}
+
+.client-email-tracking-summary-card.tone-warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.client-email-tracking-summary-card.tone-danger {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.client-email-tracking-summary-card.tone-muted {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.client-email-tracking-results-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.client-email-tracking-table {
+  min-width: 1180px;
+}
+
+.client-email-recipient-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.client-email-recipient-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.22rem 0.65rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.client-email-recipient-status.status-pending {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.client-email-recipient-status.status-sent {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.client-email-recipient-status.status-failed,
+.client-email-recipient-status.status-blocked {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.client-email-recipient-status.status-skipped,
+.client-email-recipient-status.status-warning_not_selected {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.client-email-quick-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.client-email-quick-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.client-email-quick-badge.tone-success {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.client-email-quick-badge.tone-info {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.client-email-quick-badge.tone-accent {
+  background: #eef2ff;
+  color: #4338ca;
+  border-color: #c7d2fe;
+}
+
+.client-email-quick-badge.tone-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.client-email-quick-badge.tone-danger {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.client-email-quick-badge.tone-muted {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.client-email-recipient-note {
+  color: #334155;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.client-email-recipient-link {
+  color: #1d4ed8;
+  word-break: break-all;
+}
+
+.client-email-tracking-modal {
+  width: min(920px, 100%);
+}
+
+.client-email-tracking-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.client-email-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.client-email-timeline-item {
+  border: 1px solid #e2e8f0;
+  border-right-width: 4px;
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+  background: #fff;
+}
+
+.client-email-timeline-item.tone-success {
+  border-right-color: #16a34a;
+}
+
+.client-email-timeline-item.tone-info {
+  border-right-color: #2563eb;
+}
+
+.client-email-timeline-item.tone-accent {
+  border-right-color: #4f46e5;
+}
+
+.client-email-timeline-item.tone-warning {
+  border-right-color: #d97706;
+}
+
+.client-email-timeline-item.tone-danger {
+  border-right-color: #dc2626;
+}
+
+.client-email-timeline-item.tone-muted {
+  border-right-color: #64748b;
+}
+
+.client-email-timeline-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.client-email-timeline-title {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.client-email-timeline-meta {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.client-email-timeline-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.client-email-timeline-text {
+  color: #334155;
+  line-height: 1.6;
+}
+
+.client-email-timeline-footer {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.client-email-timeline-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 1.4rem;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+@media (max-width: 768px) {
+  .client-email-tracking-results-bar,
+  .client-email-tracking-modal-head,
+  .client-email-tracking-summary-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
