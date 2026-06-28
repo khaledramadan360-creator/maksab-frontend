@@ -18,6 +18,8 @@ import type {
   PaginatedClientsResult,
   TeamClientsOverviewItem,
   UpdateClientRequest,
+  BulkCreateClientsRequest,
+  BulkCreateClientsResponse,
 } from '../../types/clients';
 
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'https://maksab-backend-production.up.railway.app'}/api/v1/clients`;
@@ -374,6 +376,31 @@ export const createClient = async (payload: CreateClientRequest) => {
 
   return { data: toFrontendClientDetails(pickClientPayload(response.data)) };
 };
+
+export const bulkCreateClients = async (payload: BulkCreateClientsRequest): Promise<{ data: BulkCreateClientsResponse }> => {
+  const response = await authFetch<{ data: BulkCreateClientsResponse }>(`${BASE_URL}/bulk`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+  const mappedResults = response.data.results.map((item) => {
+    if (item.status === 'created') {
+      return {
+        ...item,
+        client: toFrontendClientDetails(pickClientPayload((item as any).client)),
+      };
+    }
+    return item;
+  });
+
+  return {
+    data: {
+      summary: response.data.summary,
+      results: mappedResults,
+    },
+  };
+};
+
 
 export const createClientFromSearch = async (payload: CreateClientFromSearchRequest) => {
   const response = await withDuplicateHandling(

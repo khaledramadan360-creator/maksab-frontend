@@ -137,3 +137,55 @@ export interface ClientsApiErrorPayload {
   details?: Array<Record<string, unknown>>;
   duplicate?: DuplicateCheckResponse;
 }
+
+export interface BulkClientItem {
+  name: string;
+  clientType: 'person' | 'company';
+  mobile?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  saudiCity: string;
+  notes?: string | null;
+  primaryPlatform: ClientPlatform;
+  sourceModule?: ClientSource;
+  sourcePlatform: ClientPlatform;
+  sourceUrl: string;
+  links?: Partial<Record<string, string | null>>;
+}
+
+export interface BulkCreateClientsRequest {
+  clients: BulkClientItem[];
+  forceCreateIfDuplicate?: boolean;
+}
+
+export interface BulkClientSuccessItem {
+  rowIndex: number;
+  status: 'created';
+  client: ClientDetails;
+  duplicateWarning?: DuplicateCheckResponse | null;
+}
+
+export interface BulkClientFailureItem {
+  rowIndex: number;
+  status: 'failed';
+  error: {
+    code: string;
+    message: string;
+    field?: string | null;
+  };
+  inputSnapshot: {
+    name?: string;
+    email?: string | null;
+    mobile?: string | null;
+  };
+}
+
+export interface BulkCreateClientsResponse {
+  summary: {
+    total: number;
+    created: number;
+    failed: number;
+  };
+  results: (BulkClientSuccessItem | BulkClientFailureItem)[];
+}
+

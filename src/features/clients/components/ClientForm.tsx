@@ -100,7 +100,7 @@ export const ClientForm = ({
 
   const validate = () => {
     if (!values.name.trim()) return 'اسم العميل مطلوب';
-    if (!values.city) return 'المدينة مطلوبة';
+    if (!values.city || (values.city as string) === 'all') return 'المدينة مطلوبة';
     if (!values.type) return 'نوع العميل مطلوب';
     if (!values.primaryPlatform) return 'المنصة الأساسية مطلوبة';
     const primaryPlatformLink = normalizeUrlInput(normalizedPlatformLinks[values.primaryPlatform]);
@@ -189,6 +189,9 @@ export const ClientForm = ({
             onChange={(e) => setValues((prev) => ({ ...prev, city: e.target.value as SupportedSaudiCity }))}
             disabled={isReadOnly || isSubmitting}
           >
+            {(values.city as string) === 'all' && (
+              <option value="all">اختر المدينة...</option>
+            )}
             {SAUDI_CITIES.map((city) => (
               <option key={city} value={city}>
                 {city}

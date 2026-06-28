@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { SAUDI_CITIES } from '../../lead-search/constants/saudi-cities';
-import type { LeadSearchResultItem } from '../../../types/lead-search';
+import type { LeadSearchResultItem, SupportedSaudiCity } from '../../../types/lead-search';
 import type { ClientPlatform, CreateClientFromSearchRequest } from '../../../types/clients';
 import { ClientForm, type ClientFormValues } from './ClientForm';
 import { DuplicateWarningDialog } from './DuplicateWarningDialog';
@@ -9,7 +9,7 @@ import { sanitizePlatformLinks } from '../utils/payload';
 
 interface SaveClientFromSearchModalProps {
   result: LeadSearchResultItem;
-  searchCity: (typeof SAUDI_CITIES)[number];
+  searchCity: SupportedSaudiCity;
   sourcePlatform: ClientPlatform;
   isReadOnly?: boolean;
   onClose: () => void;
@@ -27,9 +27,48 @@ const pickDisplayName = (result: LeadSearchResultItem): string => {
   );
 };
 
-const inferCity = (result: LeadSearchResultItem, fallbackCity: (typeof SAUDI_CITIES)[number]) => {
+const inferCity = (result: LeadSearchResultItem, fallbackCity: SupportedSaudiCity): SupportedSaudiCity => {
   const locationText = `${result.location ?? ''} ${result.extractedLocation ?? ''}`.toLowerCase();
-  const matchedCity = SAUDI_CITIES.find((city) => locationText.includes(city.toLowerCase()));
+  
+  let matchedCity = SAUDI_CITIES.find((city) => locationText.includes(city.toLowerCase()));
+  
+  if (!matchedCity) {
+    const arabicCities: Record<string, SupportedSaudiCity> = {
+      'الرياض': 'Riyadh',
+      'جدة': 'Jeddah',
+      'مكة': 'Makkah',
+      'مكة المكرمة': 'Makkah',
+      'المدينة': 'Madinah',
+      'المدينة المنورة': 'Madinah',
+      'الدمام': 'Dammam',
+      'الخبر': 'Khobar',
+      'الظهران': 'Dhahran',
+      'الطائف': 'Taif',
+      'تبوك': 'Tabuk',
+      'أبها': 'Abha',
+      'ابها': 'Abha',
+      'خميس مشيط': 'Khamis Mushait',
+      'بريدة': 'Buraidah',
+      'حائل': 'Hail',
+      'حايل': 'Hail',
+      'جازان': 'Jazan',
+      'جيزان': 'Jazan',
+      'نجران': 'Najran',
+      'الأحساء': 'Al Ahsa',
+      'الاحساء': 'Al Ahsa',
+      'الهفوف': 'Al Ahsa',
+      'ينبع': 'Yanbu',
+      'الجبيل': 'Jubail'
+    };
+    
+    for (const [arCity, enCity] of Object.entries(arabicCities)) {
+      if (locationText.includes(arCity)) {
+        matchedCity = enCity;
+        break;
+      }
+    }
+  }
+  
   return matchedCity ?? fallbackCity;
 };
 
@@ -40,7 +79,7 @@ const normalizeOptional = (value?: string) => {
 
 const buildInitialValues = (
   result: LeadSearchResultItem,
-  fallbackCity: (typeof SAUDI_CITIES)[number],
+  fallbackCity: SupportedSaudiCity,
   sourcePlatform: ClientPlatform,
 ): ClientFormValues => {
   const canonicalUrl = result.canonicalUrl?.trim() ?? '';

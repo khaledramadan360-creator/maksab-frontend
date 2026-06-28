@@ -20,6 +20,7 @@ import { ChangeStatusModal } from '../components/ChangeStatusModal';
 import { ChangeOwnerModal } from '../components/ChangeOwnerModal';
 import { DeleteClientDialog } from '../components/DeleteClientDialog';
 import { ClientForm, type ClientFormValues } from '../components/ClientForm';
+import { BulkUploadModal } from '../components/BulkUploadModal';
 import { useClientsList } from '../hooks/useClientsList';
 import { sanitizePlatformLinks } from '../utils/payload';
 import '../styles/clients.css';
@@ -78,6 +79,7 @@ export const ClientsListPage = () => {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreateSubmitting, setIsCreateSubmitting] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   const [statusTarget, setStatusTarget] = useState<ClientListItem | null>(null);
   const [ownerTarget, setOwnerTarget] = useState<ClientListItem | null>(null);
@@ -165,6 +167,15 @@ const createPayload = (values: ClientFormValues): CreateClientRequest => ({
         </div>
         <div className="clients-header-actions">
           {isReadOnlyUser && <span className="clients-preview-pill-text">Preview Mode</span>}
+          {!isReadOnlyUser && canCreate && (
+            <button
+              className="clients-btn clients-btn-ghost"
+              onClick={() => setIsBulkModalOpen(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+            >
+              📥 رفع جماعي (Excel/CSV)
+            </button>
+          )}
           <button
             className="clients-btn clients-btn-primary"
             onClick={() => setIsCreateModalOpen(true)}
@@ -230,6 +241,16 @@ const createPayload = (values: ClientFormValues): CreateClientRequest => ({
             />
           </div>
         </div>
+      )}
+
+      {isBulkModalOpen && (
+        <BulkUploadModal
+          onCancel={() => setIsBulkModalOpen(false)}
+          onSuccess={() => {
+            reload();
+          }}
+          isReadOnly={isReadOnlyUser}
+        />
       )}
 
       {statusTarget && (

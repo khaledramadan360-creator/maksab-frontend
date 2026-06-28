@@ -19,6 +19,7 @@ export const SaudiCitySelect: React.FC<SaudiCitySelectProps> = ({ value, onChang
         disabled={disabled}
         className="ls-select"
       >
+        <option value="all">الكل (البحث في جميع المدن)</option>
         {SAUDI_CITIES.map((city) => (
           <option key={city} value={city}>{city}</option>
         ))}

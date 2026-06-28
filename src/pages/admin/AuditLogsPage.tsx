@@ -58,7 +58,7 @@ export const AuditLogsPage = () => {
         <h2 className="admin-page-title">سجلات التدقيق</h2>
       </div>
 
-      <div className="admin-filter-bar">
+      <div className="admin-filter-bar audit-logs-filter-bar">
         <div className="admin-filter-group">
           <label className="admin-filter-label">الحدث (Action)</label>
           <input
@@ -157,68 +157,69 @@ export const AuditLogsPage = () => {
       )}
 
       {loadState === 'ok' && (
-        <div className="admin-table-wrapper">
-          <table className="admin-table">
-            <colgroup>
-              <col style={{ width: '22%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '15%' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>الحدث</th>
-                <th>نوع الكيان</th>
-                <th>معرف الكيان</th>
-                <th>معرف المنفذ</th>
-                <th>التاريخ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.length === 0 ? (
+        <div className="admin-table-wrapper audit-logs-table-wrapper">
+            <table className="admin-table audit-logs-table">
+              <colgroup>
+                <col style={{ width: '22%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '15%' }} />
+              </colgroup>
+              <thead>
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>
-                    لا توجد سجلات للفترة أو الفلاتر المحددة
-                  </td>
+                  <th>الحدث</th>
+                  <th>نوع الكيان</th>
+                  <th>معرف الكيان</th>
+                  <th>معرف المنفذ</th>
+                  <th>التاريخ</th>
                 </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr key={log.id}>
-                    <td>
-                      <span className="admin-truncate" title={log.action} dir="ltr">
-                        {log.action}
-                      </span>
+              </thead>
+              <tbody>
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#888' }}>
+                      لا توجد سجلات للفترة أو الفلاتر المحددة
                     </td>
-                    <td>
-                      <span className="admin-truncate" title={log.entityType}>
-                        {log.entityType}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="admin-truncate" title={log.entityId} dir="ltr">
-                        {log.entityId}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="admin-truncate" title={log.actorUserId} dir="ltr">
-                        {log.actorUserId}
-                      </span>
-                    </td>
-                    <td>{new Date(log.createdAt).toLocaleString('ar-EG')}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          <Pagination
-            page={filters.page}
-            pageSize={filters.pageSize}
-            total={total}
-            disabled={isReadOnlyUser}
-            onPageChange={(newPage) => setFilters((prev) => ({ ...prev, page: newPage }))}
-          />
-        </div>
+                ) : (
+                  logs.map((log) => (
+                    <tr key={log.id}>
+                      <td>
+                        <span className="admin-truncate" title={log.action} dir="ltr">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="admin-truncate" title={log.entityType}>
+                          {log.entityType}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="admin-truncate" title={log.entityId} dir="ltr">
+                          {log.entityId}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="admin-truncate" title={log.actorUserId} dir="ltr">
+                          {log.actorUserId}
+                        </span>
+                      </td>
+                      <td>{new Date(log.createdAt).toLocaleString('ar-EG')}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            <Pagination
+              page={filters.page}
+              pageSize={filters.pageSize}
+              total={total}
+              disabled={isReadOnlyUser}
+              onPageChange={(newPage) => setFilters((prev) => ({ ...prev, page: newPage }))}
+            />
+          </div>
+        
       )}
     </div>
   );

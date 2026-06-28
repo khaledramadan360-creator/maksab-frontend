@@ -387,3 +387,10 @@
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
 }
+
+/* Bulk Upload Styles */
+.drag-active {
+  border-color: var(--color-cta) !important;
+  background-color: #f0f7ff !important;
+}
+

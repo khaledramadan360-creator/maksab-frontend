@@ -1,5 +1,5 @@
 export type SearchPlatform = 'website' | 'linkedin' | 'facebook' | 'instagram' | 'snapchat' | 'x' | 'tiktok';
-export type SupportedSaudiCity = 'Riyadh' | 'Jeddah' | 'Makkah' | 'Madinah' | 'Dammam' | 'Khobar' | 'Dhahran' | 'Taif' | 'Tabuk' | 'Abha' | 'Khamis Mushait' | 'Buraidah' | 'Hail' | 'Jazan' | 'Najran' | 'Al Ahsa' | 'Yanbu' | 'Jubail';
+export type SupportedSaudiCity = 'all' | 'Riyadh' | 'Jeddah' | 'Makkah' | 'Madinah' | 'Dammam' | 'Khobar' | 'Dhahran' | 'Taif' | 'Tabuk' | 'Abha' | 'Khamis Mushait' | 'Buraidah' | 'Hail' | 'Jazan' | 'Najran' | 'Al Ahsa' | 'Yanbu' | 'Jubail';
 export type RequestedResultsCount = 10 | 25 | 50;
 export type SearchLanguage = 'ar' | 'en';
 
