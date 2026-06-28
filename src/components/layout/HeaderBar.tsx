@@ -21,6 +21,7 @@ export const HeaderBar = ({ isSidebarOpen, onMenuToggle }: HeaderBarProps) => {
           <span className="shell-menu-line" />
           <span className="shell-menu-line" />
         </button>
+        <img src="/logo.png" alt="لوجو مكسب" className="shell-brand-logo" style={{ marginLeft: '0.5rem', width: '24px', height: '24px' }} />
         <h1 className="shell-header-title">برنامج بحث مكسب</h1>
       </div>
       <div className="shell-header-right">

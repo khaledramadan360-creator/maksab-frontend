@@ -183,6 +183,18 @@
   flex-shrink: 0;
 }
 
+.shell-brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 2px;
+  box-sizing: border-box;
+  object-fit: contain;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .shell-nav {
   flex: 1;
   padding: 1rem 0.75rem;

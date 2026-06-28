@@ -71,7 +71,7 @@ export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
     <aside className={`shell-sidebar${isOpen ? ' mobile-open' : ''}`}>
       <div className="shell-sidebar-brand">
         <div className="shell-sidebar-brand-main">
-          <div className="shell-brand-dot" />
+          <img src="/logo.png" alt="لوجو مكسب" className="shell-brand-logo" />
           <div>
             <div className="shell-brand-text">مكسب</div>
             <div className="shell-brand-sub">نظام إدارة الصلاحيات</div>
